@@ -82,7 +82,7 @@ contains
       ! Contribution to R_bar = mmr * specific gas constant
       R_bar = R_bar + mmr * R / mol_w(n)
 
-      ! y values for interpolation)
+      ! y values for interpolation
       y0 = cp(n,iT)
       y1 = cp(n,iT1)
       call linear_log_interp(T_in,x0,x1,y0,y1,cp_val)
