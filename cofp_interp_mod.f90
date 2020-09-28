@@ -5,6 +5,7 @@
 ! An example program is given below the module, comment this out when compiling
 ! with other code.
 !! TODO: read mol_w directly from a file to avoid passing it.
+!! Extrapolate cp(T) rather than force when out of bounds.
 !!!
 
 module cofp_interp_mod
@@ -69,10 +70,6 @@ contains
     call locate(T, T_in, iT)
     iT1 = iT + 1
 
-    !! Interpolation values
-    x0 = T(iT)
-    x1 = T(iT1)
-
     !! Main loop calculations
     R_bar = 0.0_dp
     cp_bar = 0.0_dp
@@ -82,10 +79,23 @@ contains
       ! Contribution to R_bar = mmr * specific gas constant
       R_bar = R_bar + mmr * R / mol_w(n)
 
-      ! y values for interpolation
-      y0 = cp(n,iT)
-      y1 = cp(n,iT1)
-      call linear_log_interp(T_in,x0,x1,y0,y1,cp_val)
+      ! Do a case construct to check if within temperature bounds
+      select case(iT)
+      case(0)
+        ! T < 100 K, force value to be at 100 K
+        cp_val = cp(n,1)
+      case (61)
+        ! T > 6000 K, force values to be at 6000 K
+        cp_val = cp(n,61)
+      case default
+        ! 100 K  < T < 6000 K, do linear interpolation
+        ! x and y values for interpolation
+        x0 = T(iT)
+        x1 = T(iT1)
+        y0 = cp(n,iT)
+        y1 = cp(n,iT1)
+        call linear_log_interp(T_in,x0,x1,y0,y1,cp_val)
+      end select
 
       ! Contribution to cp_bar = mmr * cp_val / molecular weight
       cp_bar = cp_bar + mmr * cp_val/mol_w(n)
